@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ग्राम सेवा डैशबोर्ड</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .stat-card { cursor: pointer; transition: all 0.3s ease; }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    .big-search-section { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
+    .big-search-container { display: flex; gap: 15px; max-width: 800px; margin: 0 auto; }
+    .big-search-input { flex: 1; padding: 15px 20px; font-size: 18px; border: 2px solid #e0e0e0; border-radius: 8px; }
+    .big-search-input:focus { border-color: #2196F3; outline: none; }
+    .big-search-btn { padding: 15px 40px; font-size: 18px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+    .big-search-btn:hover { background: #1976D2; }
+    .data-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000; }
+    .data-modal.active { display: flex; }
+    .data-modal-content { background: white; width: 90%; max-width: 1200px; max-height: 85vh; overflow-y: auto; border-radius: 12px; padding: 30px; }
+    .data-list { display: grid; gap: 15px; margin-top: 20px; }
+    .data-item { background: #f5f5f5; padding: 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+    .data-item:hover { background: #e8f4f8; transform: translateX(5px); }
+    
+    .village-details { display: grid; gap: 25px; }
+    .detail-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; color: white; }
+    .detail-section h4 { color: white; margin-bottom: 20px; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+    .detail-item { background: rgba(255,255,255,0.95); padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .detail-label { font-size: 13px; color: #666; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 10px; }
+    .detail-value { font-size: 28px; color: #333; font-weight: 700; display: block; }
+    
+    .info-cards { display: grid; gap: 15px; }
+    .info-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .info-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .info-card-title { font-size: 18px; font-weight: 700; color: #333; display: flex; align-items: center; gap: 10px; }
+    .info-card-body { display: grid; gap: 12px; }
+    .info-row { background: #f8f9fa; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; }
+    .info-row:hover { background: #e3f2fd; transform: translateX(5px); }
+    .info-row-main { font-weight: 600; color: #333; flex: 1; }
+    .info-row-badges { display: flex; gap: 10px; align-items: center; }
+    
+    .resource-icon-large { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+    .resource-icon-large.water { background: linear-gradient(135deg, #4fc3f7, #0288d1); }
+    .resource-icon-large.electricity { background: linear-gradient(135deg, #ffd54f, #f57c00); }
+    .resource-icon-large.road { background: linear-gradient(135deg, #90a4ae, #546e7a); }
+    .resource-icon-large.health { background: linear-gradient(135deg, #ef5350, #c62828); }
+    .resource-icon-large.education { background: linear-gradient(135deg, #ab47bc, #7b1fa2); }
+    
+    .quality-badge { padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; }
+    .quality-badge.good { background: #c8e6c9; color: #2e7d32; }
+    .quality-badge.average { background: #ffe082; color: #f57c00; }
+    .quality-badge.poor { background: #ffcdd2; color: #c62828; }
+    
+    .priority-badge { padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px; }
+    .priority-badge.urgent { background: #ffcdd2; color: #c62828; }
+    .priority-badge.high { background: #ffe082; color: #f57c00; }
+    .priority-badge.medium { background: #fff9c4; color: #f9a825; }
+    .priority-badge.low { background: #c8e6c9; color: #2e7d32; }
+    
+    .large-modal { width: 95%; max-width: 1200px; }
+    .resource-card { cursor: pointer; transition: all 0.3s ease; }
+    .resource-card:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    
+    /* Table Styles */
+    .resource-distribution-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .resource-distribution-table thead tr { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .resource-distribution-table th { padding: 15px; text-align: left; font-weight: 700; }
+    .resource-distribution-table td { padding: 15px; border-bottom: 1px solid #eee; }
+    .resource-distribution-table tbody tr { transition: background 0.2s ease; }
+    .resource-distribution-table tbody tr:hover { background: #f8f9fa; cursor: pointer; }
+    
+    .distribution-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+    .distribution-header h2 { margin: 0 0 10px 0; font-size: 28px; }
+    .distribution-header p { margin: 0; opacity: 0.9; }
+    .distribution-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .distribution-stat { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
+    .distribution-stat-number { font-size: 32px; font-weight: 700; color: #2196F3; margin: 10px 0; }
+    .distribution-stat-label { color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="logo-container">
+          <img src="mountain.png" alt="Logo" class="logo-icon">
+          <span class="logo-text">ग्राम सेवा</span>
+        </div>
+      </div>
+      <div class="nav-center">
+        <div class="role-switcher">
+          <div class="switcher-track">
+            <div class="switcher-thumb"></div>
+            <div class="switcher-options">
+              <input type="radio" id="pradhanMode" name="dashboardMode" value="pradhan" checked>
+              <label for="pradhanMode" class="switcher-label">
+                <i class="fas fa-crown"></i>
+                <span>प्रधान व्यू</span>
+              </label>
+              <input type="radio" id="villagerMode" name="dashboardMode" value="villager">
+              <label for="villagerMode" class="switcher-label">
+                <i class="fas fa-user"></i>
+                <span>ग्रामीण व्यू</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <button class="nav-btn notification-btn">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge" id="notificationBadge">5</span>
+        </button>
+        <div class="user-menu">
+          <button class="user-btn" id="userMenuBtn">
+            <div class="user-avatar" id="userAvatar">
+              <i class="fas fa-crown"></i>
+            </div>
+            <span class="user-name" id="userName">प्रधान जी</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="user-dropdown" id="userDropdown">
+            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> प्रोफाइल</a>
+            <a href="#" class="dropdown-item"><i class="fas fa-cog"></i> सेटिंग्स</a>
+            <div class="dropdown-divider"></div>
+            <a href="index.html" class="dropdown-item logout"><i class="fas fa-sign-out-alt"></i> लॉग आउट</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <section class="dashboard-welcome">
+      <div class="welcome-content">
+        <h1 class="welcome-title" id="welcomeTitle">नमस्ते प्रधान जी! 🙏</h1>
+        <p class="welcome-subtitle" id="welcomeSubtitle">आपके गांव की प्रगति और प्रबंधन का डैशबोर्ड</p>
+      </div>
+      <div class="welcome-actions">
+        <button class="primary-btn" onclick="handlePrimaryAction()">
+          <i class="fas fa-plus"></i>
+          <span id="primaryActionText">नया गांव जोड़ें</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="big-search-section" id="bigSearchSection" style="display: none;">
+      <h2 style="text-align: center; margin-bottom: 20px; color: #333;">🔍 अपना गांव खोजें</h2>
+      <div class="big-search-container">
+        <input type="text" id="bigVillageSearch" class="big-search-input" placeholder="गांव का नाम या कोड दर्ज करें...">
+        <button class="big-search-btn" onclick="bigSearchVillage()">
+          <i class="fas fa-search"></i> खोजें
+        </button>
+      </div>
+      <div id="bigSearchResults" class="search-results" style="margin-top: 20px;"></div>
+    </section>
+
+    <section class="dashboard-stats">
+      <div class="stats-grid">
+        <div class="stat-card pradhan-stat" onclick="showVillagesModal()">
+          <div class="stat-header"><div class="stat-icon"><i class="fas fa-map"></i></div></div>
+          <div class="stat-body"><h3 class="stat-number">12</h3><p class="stat-label">कुल गांव</p></div>
+        </div>
+        <div class="stat-card pradhan-stat" onclick="alert('जनसंख्या विवरण')">
+          <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
+          <div class="stat-body"><h3 class="stat-number">8,456</h3><p class="stat-label">कुल जनसंख्या</p></div>
+        </div>
+        <div class="stat-card pradhan-stat" onclick="showProjectsModal()">
+          <div class="stat-header"><div class="stat-icon"><i class="fas fa-tools"></i></div></div>
+          <div class="stat-body"><h3 class="stat-number">25</h3><p class="stat-label">चालू प्रोजेक्ट</p></div>
+        </div>
+        <div class="stat-card pradhan-stat" onclick="alert('बजट विवरण')">
+          <div class="stat-header"><div class="stat-icon"><i class="fas fa-rupee-sign"></i></div></div>
+          <div class="stat-body"><h3 class="stat-number">₹45.2L</h3><p class="stat-label">कुल बजट</p></div>
+        </div>
+        <div class="stat-card villager-stat" style="display: none;">
+          <div class="stat-header"><div class="stat-icon"><i class="fas fa-chart-line"></i></div></div>
+          <div class="stat-body"><h3 class="stat-number">8</h3><p class="stat-label">मेरी समीक्षाएं</p></div>
+        </div>
+        <div class="stat-card villager-stat" style="display: none;" onclick="showMyComplaintsModal()">
+          <div class="stat-header"><div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div></div>
+          <div class="stat-body"><h3 class="stat-number">3</h3><p class="stat-label">मेरी शिकायतें</p></div>
+        </div>
+        <div class="stat-card villager-stat" style="display: none;">
+          <div class="stat-header"><div class="stat-icon"><i class="fas fa-check-circle"></i></div></div>
+          <div class="stat-body"><h3 class="stat-number">6</h3><p class="stat-label">पूर्ण कार्य</p></div>
+        </div>
+        <div class="stat-card villager-stat" style="display: none;" onclick="showProjectsModal()">
+          <div class="stat-header"><div class="stat-icon"><i class="fas fa-clock"></i></div></div>
+          <div class="stat-body"><h3 class="stat-number">4</h3><p class="stat-label">चालू कार्य</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-content pradhan-content">
+      <div class="content-grid">
+        <div class="dashboard-widget village-widget">
+          <div class="widget-header">
+            <h3 class="widget-title">गांव प्रबंधन</h3>
+            <button class="widget-action" onclick="openModal('addVillageModal')"><i class="fas fa-plus"></i></button>
+          </div>
+          <div class="widget-content"><div class="village-list"></div></div>
+        </div>
+
+        <div class="dashboard-widget resource-widget">
+          <div class="widget-header">
+            <h3 class="widget-title">संसाधन प्रबंधन</h3>
+            <button class="widget-action" onclick="openModal('addResourceModal')"><i class="fas fa-plus"></i></button>
+          </div>
+          <div class="widget-content"><div class="resource-grid"></div></div>
+        </div>
+
+        <div class="dashboard-widget complaints-widget">
+          <div class="widget-header"><h3 class="widget-title">हाल की शिकायतें</h3></div>
+          <div class="widget-content"><div class="complaints-list"></div></div>
+        </div>
+
+        <div class="dashboard-widget projects-widget">
+          <div class="widget-header"><h3 class="widget-title">विकास परियोजनाएं</h3></div>
+          <div class="widget-content"><div class="projects-list"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-content villager-content" style="display: none;">
+      <div class="quick-actions">
+        <div class="actions-grid">
+          <div class="action-card" onclick="openModal('reviewModal')">
+            <div class="action-icon success"><i class="fas fa-thumbs-up"></i></div>
+            <div class="action-content">
+              <h3 class="action-title">कार्य की समीक्षा</h3>
+              <p class="action-desc">पूरे हुए कार्यों की रिपोर्ट करें</p>
+            </div>
+          </div>
+          <div class="action-card" onclick="openModal('complainModal')">
+            <div class="action-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="action-content">
+              <h3 class="action-title">शिकायत दर्ज करें</h3>
+              <p class="action-desc">समस्या की शिकायत दर्ज करें</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Data Modals -->
+  <div class="data-modal" id="villagesDataModal">
+    <div class="data-modal-content">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <h2>सभी गांव</h2>
+        <button class="close-btn" onclick="closeDataModal('villagesDataModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="villagesDataList" class="data-list"></div>
+    </div>
+  </div>
+
+  <div class="data-modal" id="projectsDataModal">
+    <div class="data-modal-content">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <h2>सभी परियोजनाएं</h2>
+        <button class="close-btn" onclick="closeDataModal('projectsDataModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="projectsDataList" class="data-list"></div>
+    </div>
+  </div>
+
+  <div class="data-modal" id="complaintsDataModal">
+    <div class="data-modal-content">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <h2>मेरी शिकायतें</h2>
+        <button class="close-btn" onclick="closeDataModal('complaintsDataModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="complaintsDataList" class="data-list"></div>
+    </div>
+  </div>
+
+  <!-- Resource Distribution Modal -->
+  <div class="data-modal" id="resourceDistributionModal">
+    <div class="data-modal-content">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <h2 id="resourceDistributionTitle">संसाधन वितरण</h2>
+        <button class="close-btn" onclick="closeDataModal('resourceDistributionModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="resourceDistributionContent"></div>
+    </div>
+  </div>
+  <!-- Add Village Modal -->
+  <div class="modal" id="addVillageModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>नया गांव जोड़ें</h3>
+        <button class="close-btn" onclick="closeModal('addVillageModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>गांव का नाम *</label>
+              <input type="text" class="modal-input" id="villageName" required>
+            </div>
+            <div class="form-group">
+              <label>गांव कोड *</label>
+              <input type="text" class="modal-input" id="villageCode" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>जनसंख्या *</label>
+              <input type="number" class="modal-input" id="villagePopulation" required>
+            </div>
+            <div class="form-group">
+              <label>कुल परिवार *</label>
+              <input type="number" class="modal-input" id="villageFamilies" required>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary-btn" onclick="closeModal('addVillageModal')">रद्द करें</button>
+        <button class="btn primary-btn" onclick="saveVillage()">सेव करें</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Resource Modal -->
+  <div class="modal" id="addResourceModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>नया संसाधन जोड़ें</h3>
+        <button class="close-btn" onclick="closeModal('addResourceModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form class="modal-form">
+          <div class="form-group">
+            <label>गांव चुनें *</label>
+            <select class="modal-input" id="resourceVillage" required>
+              <option value="">गांव चुनें</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>संसाधन का प्रकार *</label>
+            <select class="modal-input" id="resourceType" required>
+              <option value="">प्रकार चुनें</option>
+              <option value="WATER">पानी</option>
+              <option value="ELECTRICITY">बिजली</option>
+              <option value="ROAD">सड़क</option>
+              <option value="HEALTH">स्वास्थ्य</option>
+              <option value="EDUCATION">शिक्षा</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>संसाधन का नाम *</label>
+            <input type="text" class="modal-input" id="resourceName" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>कुल संख्या *</label>
+              <input type="number" class="modal-input" id="resourceCount" required>
+            </div>
+            <div class="form-group">
+              <label>कवरेज % *</label>
+              <input type="number" class="modal-input" id="resourceCoverage" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>गुणवत्ता स्थिति *</label>
+            <select class="modal-input" id="resourceQuality" required>
+              <option value="GOOD">अच्छा</option>
+              <option value="AVERAGE">औसत</option>
+              <option value="POOR">खराब</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary-btn" onclick="closeModal('addResourceModal')">रद्द करें</button>
+        <button class="btn primary-btn" onclick="saveResource()">सेव करें</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Village Details Modal -->
+  <div class="modal" id="villageDetailsModal">
+    <div class="modal-content large-modal">
+      <div class="modal-header">
+        <h3 id="villageDetailsTitle">गांव विवरण</h3>
+        <button class="close-btn" onclick="closeModal('villageDetailsModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="villageDetailsContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaint Modal -->
+  <div class="modal" id="complainModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>शिकायत दर्ज करें</h3>
+        <button class="close-btn" onclick="closeModal('complainModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form class="modal-form">
+          <div class="form-group" id="complaintVillageInfo" style="display: none;">
+            <label>चयनित गांव</label>
+            <div id="selectedVillageDisplay" style="padding: 10px; background: #e8f5e9; border-radius: 5px; margin-bottom: 10px;">
+              <strong id="selectedVillageName">कोई गांव नहीं चुना गया</strong>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>शिकायत का प्रकार *</label>
+            <select class="modal-input" id="complaintType" required>
+              <option value="">प्रकार चुनें</option>
+              <option value="WATER">पानी की समस्या</option>
+              <option value="ELECTRICITY">बिजली की समस्या</option>
+              <option value="ROADS">सड़क की समस्या</option>
+              <option value="SANITATION">सफाई की समस्या</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>शिकायत का शीर्षक *</label>
+            <input type="text" class="modal-input" id="complaintTitle" required>
+          </div>
+          <div class="form-group">
+            <label>विस्तृत विवरण *</label>
+            <textarea class="modal-textarea" id="complaintDesc" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>स्थान</label>
+            <input type="text" class="modal-input" id="complaintLocation">
+          </div>
+          <div class="form-group">
+            <label>प्राथमिकता स्तर *</label>
+            <select class="modal-input" id="complaintPriority" required>
+              <option value="MEDIUM">मध्यम</option>
+              <option value="LOW">कम</option>
+              <option value="HIGH">उच्च</option>
+              <option value="URGENT">तुरंत</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary-btn" onclick="closeModal('complainModal')">रद्द करें</button>
+        <button class="btn primary-btn" onclick="submitComplaint()">शिकायत दर्ज करें</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal" id="reviewModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>कार्य की समीक्षा करें</h3>
+        <button class="close-btn" onclick="closeModal('reviewModal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <form class="modal-form">
+          <div class="form-group">
+            <label>कार्य चुनें *</label>
+            <select class="modal-input" id="reviewProject" required>
+              <option value="">कार्य चुनें</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>गुणवत्ता रेटिंग *</label>
+            <div class="rating-stars">
+              <span class="star" data-rating="1">⭐</span>
+              <span class="star" data-rating="2">⭐</span>
+              <span class="star" data-rating="3">⭐</span>
+              <span class="star" data-rating="4">⭐</span>
+              <span class="star" data-rating="5">⭐</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>टिप्पणी</label>
+            <textarea class="modal-textarea" id="reviewComments"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary-btn" onclick="closeModal('reviewModal')">रद्द करें</button>
+        <button class="btn primary-btn" onclick="submitReview()">समीक्षा जमा करें</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+    let selectedVillageId = null;
+    let selectedVillageName = '';
+    let currentMode = 'pradhan';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadStats();
+        await loadVillages();
+        await loadComplaints();
+        await loadProjects();
+        await loadResources();
+        await populateVillageDropdowns();
+        await populateProjectDropdown();
+        initializeRoleSwitcher();
+        initializeUserMenu();
+        initializeModals();
+        initializeStarRating();
+    });
+
+    async function loadStats() {
+        try {
+            const response = await fetch(`${API_URL}/stats`);
+            const data = await response.json();
+            const statNumbers = document.querySelectorAll('.stat-number');
+            if (statNumbers[0]) statNumbers[0].textContent = data.TOTAL_VILLAGES || 0;
+            if (statNumbers[1]) statNumbers[1].textContent = (data.TOTAL_POPULATION || 0).toLocaleString();
+            if (statNumbers[2]) statNumbers[2].textContent = data.ONGOING_PROJECTS || 0;
+            if (statNumbers[3]) statNumbers[3].textContent = `₹${((data.TOTAL_BUDGET || 0)/100000).toFixed(1)}L`;
+            if (statNumbers[4]) statNumbers[4].textContent = data.TOTAL_REVIEWS || 0;
+            if (statNumbers[5]) statNumbers[5].textContent = data.TOTAL_COMPLAINTS || 0;
+            if (statNumbers[6]) statNumbers[6].textContent = data.COMPLETED_PROJECTS || 0;
+            if (statNumbers[7]) statNumbers[7].textContent = data.ONGOING_PROJECTS || 0;
+        } catch (error) {
+            console.log('Using defaults');
+        }
+    }
+
+    async function loadVillages() {
+        try {
+            const response = await fetch(`${API_URL}/villages`);
+            const villages = await response.json();
+            const villageList = document.querySelector('.village-list');
+            if (villageList && villages.length > 0) {
+                villageList.innerHTML = '';
+                villages.forEach(v => {
+                    villageList.innerHTML += `
+                        <div class="village-item" onclick="viewVillageDetails(${v.VILLAGE_ID})" style="cursor: pointer;">
+                            <div class="village-info">
+                                <h4 class="village-name">${v.VILLAGE_NAME}</h4>
+                                <p class="village-details">जनसंख्या: ${v.POPULATION} | परिवार: ${v.TOTAL_FAMILIES}</p>
+                                <span class="status-badge success">${v.STATUS}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        } catch (error) {
+            console.log('Using defaults');
+        }
+    }
+
+    async function loadComplaints() {
+        try {
+            const response = await fetch(`${API_URL}/complaints`);
+            const complaints = await response.json();
+            const list = document.querySelector('.complaints-list');
+            if (list && complaints.length > 0) {
+                list.innerHTML = '';
+                complaints.slice(0, 3).forEach(c => {
+                    const priorityMap = {'URGENT': 'तुरंत', 'HIGH': 'उच्च', 'MEDIUM': 'मध्यम', 'LOW': 'कम'};
+                    const statusColor = c.STATUS === 'RESOLVED' ? 'success' : c.STATUS === 'IN_PROGRESS' ? 'warning' : 'pending';
+                    list.innerHTML += `
+                        <div class="complaint-item ${c.PRIORITY_LEVEL.toLowerCase()}">
+                            <div class="complaint-info">
+                                <h4 class="complaint-title">${c.COMPLAINT_TITLE}</h4>
+                                <p class="complaint-desc">${c.COMPLAINT_DESCRIPTION.substring(0, 40)}...</p>
+                                <span class="complaint-time">${Math.round(c.HOURS_AGO)} घंटे पहले</span>
+                                <span class="status-badge ${statusColor}">${c.STATUS}</span>
+                            </div>
+                            <div class="complaint-actions">
+                                <span class="priority-badge ${c.PRIORITY_LEVEL.toLowerCase()}">${priorityMap[c.PRIORITY_LEVEL]}</span>
+                                ${c.STATUS !== 'RESOLVED' ? `<button class="btn success-btn" onclick="resolveComplaint(${c.COMPLAINT_ID})">हल करें</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        } catch (error) {
+            console.log('Using defaults');
+        }
+    }
+
+    async function loadProjects() {
+        try {
+            const response = await fetch(`${API_URL}/projects`);
+            const projects = await response.json();
+            const list = document.querySelector('.projects-list');
+            if (list && projects.length > 0) {
+                list.innerHTML = '';
+                projects.slice(0, 2).forEach(p => {
+                    list.innerHTML += `
+                        <div class="project-item">
+                            <div class="project-info">
+                                <h4 class="project-title">${p.PROJECT_NAME}</h4>
+                                <p class="project-location">${p.VILLAGE_NAME}</p>
+                                <div class="project-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${p.COMPLETION_PERCENTAGE}%"></div>
+                                    </div>
+                                    <span class="progress-text">${p.COMPLETION_PERCENTAGE}%</span>
+                                </div>
+                            </div>
+                            <div class="project-budget">
+                                <span class="budget-amount">₹${(p.BUDGET_ALLOCATED/100000).toFixed(1)}L</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        } catch (error) {
+            console.log('Using defaults');
+        }
+    }
+
+    async function loadResources() {
+        try {
+            const response = await fetch(`${API_URL}/resources`);
+            const resources = await response.json();
+            const groupedResources = {};
+            resources.forEach(r => {
+                if (!groupedResources[r.RESOURCE_TYPE]) {
+                    groupedResources[r.RESOURCE_TYPE] = [];
+                }
+                groupedResources[r.RESOURCE_TYPE].push(r);
+            });
+            
+            const grid = document.querySelector('.resource-grid');
+            if (grid) {
+                grid.innerHTML = '';
+                Object.keys(groupedResources).forEach(type => {
+                    const items = groupedResources[type];
+                    const totalCount = items.reduce((sum, r) => sum + r.TOTAL_COUNT, 0);
+                    const avgCoverage = (items.reduce((sum, r) => sum + r.COVERAGE_PERCENTAGE, 0) / items.length).toFixed(0);
+                    const icons = {'WATER': 'tint', 'ELECTRICITY': 'bolt', 'ROAD': 'road', 'HEALTH': 'hospital', 'EDUCATION': 'school'};
+                    const typeNames = {'WATER': 'पानी', 'ELECTRICITY': 'बिजली', 'ROAD': 'सड़क', 'HEALTH': 'स्वास्थ्य', 'EDUCATION': 'शिक्षा'};
+                    grid.innerHTML += `
+                        <div class="resource-card" onclick="showResourceDistribution('${type}')">
+                            <div class="resource-icon ${type.toLowerCase()}">
+                                <i class="fas fa-${icons[type] || 'check'}"></i>
+                            </div>
+                            <div class="resource-info">
+                                <h4 class="resource-title">${typeNames[type] || type}</h4>
+                                <p class="resource-count">${totalCount} कुल | ${items.length} गांव</p>
+                                <span class="resource-status good">${avgCoverage}% कवरेज</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        } catch (error) {
+            console.log('Using defaults');
+        }
+    }
+
+    async function viewVillageDetails(villageId) {
+        try {
+            const response = await fetch(`${API_URL}/villages/${villageId}`);
+            const data = await response.json();
+            const village = data.village;
+            const resources = data.resources;
+            const complaints = data.complaints;
+            const projects = data.projects;
+            
+            const statusMap = {'GOOD': 'अच्छा', 'AVERAGE': 'औसत', 'POOR': 'खराब'};
+            const priorityMap = {'URGENT': 'तुरंत', 'HIGH': 'उच्च', 'MEDIUM': 'मध्यम', 'LOW': 'कम'};
+            const iconMap = {'WATER': 'tint', 'ELECTRICITY': 'bolt', 'ROAD': 'road', 'HEALTH': 'hospital', 'EDUCATION': 'school'};
+            
+            let detailsHTML = `
+                <div class="village-details">
+                    <div class="detail-section">
+                        <h4><i class="fas fa-info-circle"></i> मूल जानकारी</h4>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">गांव कोड</span>
+                                <span class="detail-value">${village.VILLAGE_CODE}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">जनसंख्या</span>
+                                <span class="detail-value">${village.POPULATION.toLocaleString()}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">कुल परिवार</span>
+                                <span class="detail-value">${village.TOTAL_FAMILIES}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">स्थिति</span>
+                                <span class="detail-value" style="color: #4caf50; font-size: 20px;">${village.STATUS}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <h4 class="info-card-title"><i class="fas fa-layer-group"></i> संसाधन (${resources.length})</h4>
+                            </div>
+                            <div class="info-card-body">
+                                ${resources.map(r => `
+                                    <div class="info-row">
+                                        <div style="display: flex; align-items: center; gap: 15px;">
+                                            <div class="resource-icon-large ${r.RESOURCE_TYPE.toLowerCase()}">
+                                                <i class="fas fa-${iconMap[r.RESOURCE_TYPE]}"></i>
+                                            </div>
+                                            <div class="info-row-main">
+                                                <div style="font-weight: 700; font-size: 16px;">${r.RESOURCE_NAME}</div>
+                                                <div style="color: #666; font-size: 13px;">${r.TOTAL_COUNT} स्रोत | ${r.COVERAGE_PERCENTAGE}% कवरेज</div>
+                                            </div>
+                                        </div>
+                                        <div class="info-row-badges">
+                                            <span class="quality-badge ${r.QUALITY_STATUS.toLowerCase()}">${statusMap[r.QUALITY_STATUS]}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <h4 class="info-card-title"><i class="fas fa-exclamation-circle"></i> शिकायतें (${complaints.length})</h4>
+                            </div>
+                            <div class="info-card-body">
+                                ${complaints.slice(0, 5).map(c => `
+                                    <div class="info-row">
+                                        <div class="info-row-main">
+                                            <div style="font-weight: 700;">${c.COMPLAINT_TITLE}</div>
+                                            <div style="color: #666; font-size: 13px;">${c.COMPLAINT_DESCRIPTION.substring(0, 50)}...</div>
+                                        </div>
+                                        <div class="info-row-badges">
+                                            <span class="priority-badge ${c.PRIORITY_LEVEL.toLowerCase()}">${priorityMap[c.PRIORITY_LEVEL]}</span>
+                                            <span class="status-badge ${c.STATUS === 'RESOLVED' ? 'success' : 'warning'}">${c.STATUS}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <h4 class="info-card-title"><i class="fas fa-tasks"></i> परियोजनाएं (${projects.length})</h4>
+                            </div>
+                            <div class="info-card-body">
+                                ${projects.map(p => `
+                                    <div class="info-row">
+                                        <div class="info-row-main">
+                                            <div style="font-weight: 700;">${p.PROJECT_NAME}</div>
+                                            <div style="color: #666; font-size: 13px;">बजट: ₹${(p.BUDGET_ALLOCATED/100000).toFixed(1)}L | खर्च: ₹${(p.BUDGET_SPENT/100000).toFixed(1)}L</div>
+                                        </div>
+                                        <div class="info-row-badges">
+                                            <span style="background: #e3f2fd; color: #1976d2; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 13px;">${p.COMPLETION_PERCENTAGE}% पूर्ण</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('villageDetailsTitle').textContent = `${village.VILLAGE_NAME} - विस्तृत जानकारी`;
+            document.getElementById('villageDetailsContent').innerHTML = detailsHTML;
+            openModal('villageDetailsModal');
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+
+    async function showResourceDistribution(resourceType) {
+        try {
+            const response = await fetch(`${API_URL}/resources`);
+            const allResources = await response.json();
+            const filtered = allResources.filter(r => r.RESOURCE_TYPE === resourceType);
+            
+            const villagesResponse = await fetch(`${API_URL}/villages`);
+            const villages = await villagesResponse.json();
+            const villageMap = {};
+            villages.forEach(v => {
+                villageMap[v.VILLAGE_ID] = v.VILLAGE_NAME;
+            });
+            
+            const typeNames = {'WATER': 'पानी', 'ELECTRICITY': 'बिजली', 'ROAD': 'सड़क', 'HEALTH': 'स्वास्थ्य', 'EDUCATION': 'शिक्षा'};
+            const totalCount = filtered.reduce((sum, r) => sum + r.TOTAL_COUNT, 0);
+            const avgCoverage = (filtered.reduce((sum, r) => sum + r.COVERAGE_PERCENTAGE, 0) / filtered.length).toFixed(0);
+            const goodQuality = filtered.filter(r => r.QUALITY_STATUS === 'GOOD').length;
+            const statusMap = {'GOOD': 'अच्छा', 'AVERAGE': 'औसत', 'POOR': 'खराब'};
+            
+            let distributionHTML = `
+                <div class="resource-distribution">
+                    <div class="distribution-header">
+                        <h2>${typeNames[resourceType]} - संसाधन वितरण</h2>
+                        <p>${filtered.length} गांवों में उपलब्ध</p>
+                    </div>
+                    
+                    <div class="distribution-stats">
+                        <div class="distribution-stat">
+                            <div class="distribution-stat-label">कुल संख्या</div>
+                            <div class="distribution-stat-number">${totalCount}</div>
+                        </div>
+                        <div class="distribution-stat">
+                            <div class="distribution-stat-label">औसत कवरेज</div>
+                            <div class="distribution-stat-number">${avgCoverage}%</div>
+                        </div>
+                        <div class="distribution-stat">
+                            <div class="distribution-stat-label">अच्छी गुणवत्ता</div>
+                            <div class="distribution-stat-number">${goodQuality}</div>
+                        </div>
+                        <div class="distribution-stat">
+                            <div class="distribution-stat-label">कुल गांव</div>
+                            <div class="distribution-stat-number">${filtered.length}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="margin-bottom: 20px; color: #333;">विस्तृत विवरण</h3>
+                        <table class="resource-distribution-table">
+                            <thead>
+                                <tr>
+                                    <th>गांव का नाम</th>
+                                    <th>संसाधन का नाम</th>
+                                    <th style="text-align: center;">कुल संख्या</th>
+                                    <th style="text-align: center;">कवरेज %</th>
+                                    <th style="text-align: center;">गुणवत्ता</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filtered.map(r => `
+                                    <tr>
+                                        <td style="font-weight: 600; color: #333;">${villageMap[r.VILLAGE_ID] || 'Unknown'}</td>
+                                        <td style="color: #666;">${r.RESOURCE_NAME}</td>
+                                        <td style="text-align: center; font-weight: 700; color: #2196F3; font-size: 18px;">${r.TOTAL_COUNT}</td>
+                                        <td style="text-align: center;">
+                                            <div style="background: #e3f2fd; display: inline-block; padding: 8px 16px; border-radius: 20px; font-weight: 600; color: #1976d2;">
+                                                ${r.COVERAGE_PERCENTAGE}%
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="quality-badge ${r.QUALITY_STATUS.toLowerCase()}">${statusMap[r.QUALITY_STATUS]}</span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('resourceDistributionTitle').textContent = `${typeNames[resourceType]} संसाधन वितरण`;
+            document.getElementById('resourceDistributionContent').innerHTML = distributionHTML;
+            document.getElementById('resourceDistributionModal').classList.add('active');
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    async function showVillagesModal() {
+        try {
+            const response = await fetch(`${API_URL}/villages`);
+            const villages = await response.json();
+            const list = document.getElementById('villagesDataList');
+            list.innerHTML = '';
+            villages.forEach(v => {
+                list.innerHTML += `
+                    <div class="data-item" onclick="viewVillageDetails(${v.VILLAGE_ID}); closeDataModal('villagesDataModal')">
+                        <h3>${v.VILLAGE_NAME}</h3>
+                        <p>कोड: ${v.VILLAGE_CODE} | जनसंख्या: ${v.POPULATION} | परिवार: ${v.TOTAL_FAMILIES}</p>
+                        <span class="status-badge success">${v.STATUS}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('villagesDataModal').classList.add('active');
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    async function showProjectsModal() {
+        try {
+            const response = await fetch(`${API_URL}/projects`);
+            const projects = await response.json();
+            const list = document.getElementById('projectsDataList');
+            list.innerHTML = '';
+            projects.forEach(p => {
+                list.innerHTML += `
+                    <div class="data-item">
+                        <h3>${p.PROJECT_NAME}</h3>
+                        <p>गांव: ${p.VILLAGE_NAME} | बजट: ₹${(p.BUDGET_ALLOCATED/100000).toFixed(1)}L | पूर्णता: ${p.COMPLETION_PERCENTAGE}%</p>
+                        <span class="status-badge ${p.PROJECT_STATUS === 'IN_PROGRESS' ? 'warning' : 'success'}">${p.PROJECT_STATUS}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('projectsDataModal').classList.add('active');
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    async function showMyComplaintsModal() {
+        try {
+            const response = await fetch(`${API_URL}/complaints`);
+            const complaints = await response.json();
+            const list = document.getElementById('complaintsDataList');
+            list.innerHTML = '';
+            complaints.forEach(c => {
+                const priorityMap = {'URGENT': 'तुरंत', 'HIGH': 'उच्च', 'MEDIUM': 'मध्यम', 'LOW': 'कम'};
+                list.innerHTML += `
+                    <div class="data-item">
+                        <h3>${c.COMPLAINT_TITLE}</h3>
+                        <p>${c.COMPLAINT_DESCRIPTION}</p>
+                        <p>स्थान: ${c.LOCATION} | प्राथमिकता: ${priorityMap[c.PRIORITY_LEVEL]}</p>
+                        <span class="status-badge ${c.STATUS === 'RESOLVED' ? 'success' : 'warning'}">${c.STATUS}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('complaintsDataModal').classList.add('active');
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    function closeDataModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    async function bigSearchVillage() {
+        const query = document.getElementById('bigVillageSearch').value.trim();
+        if (!query) {
+            alert('कृपया गांव का नाम दर्ज करें');
+            return;
+        }
+        try {
+            const response = await fetch(`${API_URL}/villages/search/${query}`);
+            const villages = await response.json();
+            const resultsDiv = document.getElementById('bigSearchResults');
+            if (villages.length === 0) {
+                resultsDiv.innerHTML = '<p style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px;">कोई गांव नहीं मिला</p>';
+                return;
+            }
+            resultsDiv.innerHTML = `<div>${villages.map(v => `
+                <div onclick="selectVillageForComplaint(${v.VILLAGE_ID}, '${v.VILLAGE_NAME}')" style="background: white; padding: 20px; border-radius: 8px; margin: 10px 0; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="margin: 0 0 10px 0;">${v.VILLAGE_NAME}</h3>
+                        <p style="margin: 0; color: #666;">कोड: ${v.VILLAGE_CODE} | जनसंख्या: ${v.POPULATION}</p>
+                    </div>
+                    <button class="btn primary-btn">चुनें</button>
+                </div>
+            `).join('')}</div>`;
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    function selectVillageForComplaint(villageId, villageName) {
+        selectedVillageId = villageId;
+        selectedVillageName = villageName;
+        document.getElementById('bigSearchResults').innerHTML = `
+            <div style="padding: 20px; background: #e8f5e9; border-radius: 8px; margin-top: 15px; text-align: center;">
+                <p style="margin: 0; color: #2e7d32; font-weight: 600; font-size: 18px;">✓ चयनित गांव: ${villageName}</p>
+                <button class="btn primary-btn" onclick="openModal('complainModal')" style="margin-top: 15px;">शिकायत दर्ज करें</button>
+            </div>
+        `;
+    }
+
+    async function saveVillage() {
+        const name = document.getElementById('villageName').value.trim();
+        const code = document.getElementById('villageCode').value.trim();
+        const population = document.getElementById('villagePopulation').value;
+        const families = document.getElementById('villageFamilies').value;
+        if (!name || !code || !population || !families) {
+            alert('कृपया सभी फील्ड भरें!');
+            return;
+        }
+        try {
+            const response = await fetch(`${API_URL}/villages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ village_name: name, village_code: code, population: parseInt(population), total_families: parseInt(families) })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('✅ ' + result.message);
+                closeModal('addVillageModal');
+                document.getElementById('villageName').value = '';
+                document.getElementById('villageCode').value = '';
+                document.getElementById('villagePopulation').value = '';
+                document.getElementById('villageFamilies').value = '';
+                await loadVillages();
+                await loadStats();
+                await populateVillageDropdowns();
+            } else {
+                alert('❌ Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    async function saveResource() {
+        const villageId = document.getElementById('resourceVillage').value;
+        const type = document.getElementById('resourceType').value;
+        const name = document.getElementById('resourceName').value.trim();
+        const count = document.getElementById('resourceCount').value;
+        const coverage = document.getElementById('resourceCoverage').value;
+        const quality = document.getElementById('resourceQuality').value;
+        if (!villageId || !type || !name || !count || !coverage || !quality) {
+            alert('कृपया सभी फील्ड भरें!');
+            return;
+        }
+        try {
+            const response = await fetch(`${API_URL}/resources`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ village_id: parseInt(villageId), resource_type: type, resource_name: name, total_count: parseInt(count), coverage_percentage: parseFloat(coverage), quality_status: quality })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('✅ ' + result.message);
+                closeModal('addResourceModal');
+                document.getElementById('resourceVillage').value = '';
+                document.getElementById('resourceType').value = '';
+                document.getElementById('resourceName').value = '';
+                document.getElementById('resourceCount').value = '';
+                document.getElementById('resourceCoverage').value = '';
+                await loadResources();
+            } else {
+                alert('❌ Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    async function submitComplaint() {
+        const type = document.getElementById('complaintType').value;
+        const title = document.getElementById('complaintTitle').value.trim();
+        const desc = document.getElementById('complaintDesc').value.trim();
+        const location = document.getElementById('complaintLocation').value.trim();
+        const priority = document.getElementById('complaintPriority').value;
+        if (!type || !title || !desc) {
+            alert('कृपया सभी आवश्यक फील्ड भरें!');
+            return;
+        }
+        if (currentMode === 'villager' && !selectedVillageId) {
+            alert('कृपया पहले अपना गांव खोजें और चुनें!');
+            closeModal('complainModal');
+            return;
+        }
+        const villageId = selectedVillageId || 1;
+        try {
+            const response = await fetch(`${API_URL}/complaints`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ village_id: villageId, complaint_type: type, complaint_title: title, complaint_description: desc, location, priority_level: priority })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('✅ ' + result.message);
+                closeModal('complainModal');
+                document.getElementById('complaintType').value = '';
+                document.getElementById('complaintTitle').value = '';
+                document.getElementById('complaintDesc').value = '';
+                document.getElementById('complaintLocation').value = '';
+                await loadComplaints();
+                await loadStats();
+            } else {
+                alert('❌ Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    async function submitReview() {
+        const project = document.getElementById('reviewProject').value;
+        const comments = document.getElementById('reviewComments').value.trim();
+        const rating = document.querySelectorAll('.star.selected').length || 5;
+        if (!project) {
+            alert('कृपया कार्य चुनें!');
+            return;
+        }
+        try {
+            const response = await fetch(`${API_URL}/reviews`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ project_id: parseInt(project), quality_rating: rating, review_comments: comments })
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('✅ ' + result.message);
+                closeModal('reviewModal');
+                document.getElementById('reviewProject').value = '';
+                document.getElementById('reviewComments').value = '';
+                document.querySelectorAll('.star').forEach(s => { s.classList.remove('selected'); s.style.color = '#e0e0e0'; });
+                await loadStats();
+            } else {
+                alert('❌ Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    async function resolveComplaint(complaintId) {
+        if (!confirm('क्या आप इस शिकायत को हल के रूप में चिह्नित करना चाहते हैं?')) return;
+        try {
+            const response = await fetch(`${API_URL}/complaints/${complaintId}/resolve`, { method: 'PUT' });
+            const result = await response.json();
+            if (result.success) {
+                alert('✅ ' + result.message);
+                await loadComplaints();
+                await loadStats();
+            } else {
+                alert('❌ Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    async function populateVillageDropdowns() {
+        try {
+            const response = await fetch(`${API_URL}/villages`);
+            const villages = await response.json();
+            const resourceVillage = document.getElementById('resourceVillage');
+            villages.forEach(v => {
+                if (resourceVillage) resourceVillage.innerHTML += `<option value="${v.VILLAGE_ID}">${v.VILLAGE_NAME}</option>`;
+            });
+        } catch (error) {
+            console.log('Error loading villages');
+        }
+    }
+
+    async function populateProjectDropdown() {
+        try {
+            const response = await fetch(`${API_URL}/projects`);
+            const projects = await response.json();
+            const reviewProject = document.getElementById('reviewProject');
+            if (reviewProject) {
+                reviewProject.innerHTML = '<option value="">कार्य चुनें</option>';
+                projects.forEach(p => reviewProject.innerHTML += `<option value="${p.PROJECT_ID}">${p.PROJECT_NAME} - ${p.VILLAGE_NAME}</option>`);
+            }
+        } catch (error) {
+            console.log('Error loading projects');
+        }
+    }
+
+    function initializeRoleSwitcher() {
+        const roleInputs = document.querySelectorAll('input[name="dashboardMode"]');
+        const switcherThumb = document.querySelector('.switcher-thumb');
+        roleInputs.forEach((input, index) => {
+            input.addEventListener('change', () => {
+                if(switcherThumb) switcherThumb.style.transform = `translateX(${index * 100}%)`;
+                switchDashboardMode(input.value);
+                document.querySelectorAll('.switcher-label').forEach(label => label.classList.remove('active'));
+                input.nextElementSibling.classList.add('active');
+            });
+        });
+        if(switcherThumb) switcherThumb.style.transform = 'translateX(0%)';
+        if(roleInputs[0]) roleInputs[0].nextElementSibling.classList.add('active');
+    }
+
+    function switchDashboardMode(mode) {
+        currentMode = mode;
+        const pradhanContent = document.querySelector('.pradhan-content');
+        const villagerContent = document.querySelector('.villager-content');
+        const pradhanStats = document.querySelectorAll('.pradhan-stat');
+        const villagerStats = document.querySelectorAll('.villager-stat');
+        const bigSearchSection = document.getElementById('bigSearchSection');
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+        const primaryActionText = document.getElementById('primaryActionText');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+
+        if (mode === 'pradhan') {
+            if(pradhanContent) pradhanContent.style.display = 'block';
+            if(villagerContent) villagerContent.style.display = 'none';
+            if(bigSearchSection) bigSearchSection.style.display = 'none';
+            pradhanStats.forEach(s => s.style.display = 'block');
+            villagerStats.forEach(s => s.style.display = 'none');
+            welcomeTitle.textContent = 'नमस्ते प्रधान जी! 🙏';
+            welcomeSubtitle.textContent = 'आपके गांव की प्रगति और प्रबंधन का डैशबोर्ड';
+            primaryActionText.textContent = 'नया गांव जोड़ें';
+            userAvatar.innerHTML = '<i class="fas fa-crown"></i>';
+            userName.textContent = 'प्रधान जी';
+        } else {
+            if(pradhanContent) pradhanContent.style.display = 'none';
+            if(villagerContent) villagerContent.style.display = 'block';
+            if(bigSearchSection) bigSearchSection.style.display = 'block';
+            pradhanStats.forEach(s => s.style.display = 'none');
+            villagerStats.forEach(s => s.style.display = 'block');
+            welcomeTitle.textContent = 'नमस्ते! 🙏';
+            welcomeSubtitle.textContent = 'अपने गांव की सेवा में आपका स्वागत है';
+            primaryActionText.textContent = 'शिकायत दर्ज करें';
+            userAvatar.innerHTML = '<i class="fas fa-user"></i>';
+            userName.textContent = 'ग्रामीण';
+        }
+    }
+
+    function handlePrimaryAction() {
+        if (currentMode === 'pradhan') {
+            openModal('addVillageModal');
+        } else {
+            if (!selectedVillageId) {
+                alert('कृपया पहले ऊपर से अपना गांव खोजें और चुनें!');
+                return;
+            }
+            openModal('complainModal');
+        }
+    }
+
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        if (modalId === 'complainModal') {
+            const villageInfo = document.getElementById('complaintVillageInfo');
+            const villageNameDisplay = document.getElementById('selectedVillageName');
+            if (currentMode === 'villager' && selectedVillageId) {
+                if (villageInfo) villageInfo.style.display = 'block';
+                if (villageNameDisplay) villageNameDisplay.textContent = selectedVillageName;
+            } else {
+                if (villageInfo) villageInfo.style.display = 'none';
+            }
+        }
+        modal.classList.add('active');
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.classList.remove('active');
+    }
+
+    function initializeModals() {
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal') || e.target.classList.contains('data-modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+    }
+
+    function initializeStarRating() {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                stars.forEach((s, i) => {
+                    if (i < rating) {
+                        s.classList.add('selected');
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.classList.remove('selected');
+                        s.style.color = '#e0e0e0';
+                    }
+                });
+            });
+        });
+    }
+
+    function initializeUserMenu() {
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+        if (userMenuBtn && userDropdown) {
+            userMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('active');
+            });
+            document.addEventListener('click', () => {
+                userDropdown.classList.remove('active');
+            });
+        }
+    }
+
+    console.log('✅ ग्राम सेवा Professional Dashboard Ready');
+  </script>
+</body>
+</html>
