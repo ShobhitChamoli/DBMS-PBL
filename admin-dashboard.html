@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gram Seva Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            font-size: 1.5rem;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        td {
+            color: #333;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-active { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d1ecf1; color: #0c5460; }
+        .status-in-progress { background: #cce5ff; color: #004085; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+            .section { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏘️ Gram Seva Admin Dashboard</h1>
+
+        <!-- Executive Summary -->
+        <div class="section">
+            <h2>📊 Executive Summary</h2>
+            <div id="summaryMetrics" class="metrics-grid">
+                <div class="loading">Loading metrics...</div>
+            </div>
+        </div>
+
+        <!-- Villages Overview -->
+        <div class="section">
+            <h2>🏘️ Villages Overview</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Village Name</th>
+                            <th>Code</th>
+                            <th>Population</th>
+                            <th>Families</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="villagesTable">
+                        <tr><td colspan="6" class="loading">Loading villages...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Resource Distribution -->
+        <div class="section">
+            <h2>📦 Resource Distribution Summary</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Resource Type</th>
+                            <th>Unique Resources</th>
+                            <th>Total Units</th>
+                            <th>Avg Coverage %</th>
+                            <th>Villages Served</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resourcesTable">
+                        <tr><td colspan="5" class="loading">Loading resources...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Top Resources -->
+        <div class="section">
+            <h2>🔝 Top Resources by Village</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Village</th>
+                            <th>Type</th>
+                            <th>Resource Name</th>
+                            <th>Units</th>
+                            <th>Coverage %</th>
+                            <th>Quality</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topResourcesTable">
+                        <tr><td colspan="6" class="loading">Loading top resources...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Complaints Status -->
+        <div class="section">
+            <h2>📢 Complaints Status Breakdown</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complaintsStatusTable">
+                        <tr><td colspan="3" class="loading">Loading complaints status...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Complaints -->
+        <div class="section">
+            <h2>🆕 Recent Complaints</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Village</th>
+                            <th>Type</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentComplaintsTable">
+                        <tr><td colspan="6" class="loading">Loading recent complaints...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Project Performance -->
+        <div class="section">
+            <h2>🏗️ Project Performance</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Project Name</th>
+                            <th>Village</th>
+                            <th>Budget</th>
+                            <th>Spent</th>
+                            <th>Completion %</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectsTable">
+                        <tr><td colspan="6" class="loading">Loading projects...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Work Reviews -->
+        <div class="section">
+            <h2>⭐ Work Reviews Summary</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Village</th>
+                            <th>Rating</th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewsTable">
+                        <tr><td colspan="4" class="loading">Loading reviews...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+
+        // Helper function to format numbers
+        const formatNumber = (num) => num ? num.toLocaleString() : '0';
+
+        // Helper to get status badge class
+        const getStatusClass = (status) => {
+            if (!status) return '';
+            const s = status.toUpperCase();
+            if (s.includes('ACTIVE')) return 'status-active';
+            if (s.includes('PENDING')) return 'status-pending';
+            if (s.includes('COMPLETE')) return 'status-completed';
+            if (s.includes('PROGRESS')) return 'status-in-progress';
+            return '';
+        };
+
+        // 1. Load Executive Summary
+        async function loadSummary() {
+            try {
+                const response = await fetch(`${API_BASE}/summary`);
+                const data = await response.json();
+                const container = document.getElementById('summaryMetrics');
+                container.innerHTML = data.map(item => `
+                    <div class="metric-card">
+                        <div class="metric-value">${formatNumber(item.VALUE)}</div>
+                        <div class="metric-label">${item.METRIC}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading summary:', error);
+                document.getElementById('summaryMetrics').innerHTML = '<div class="loading">Error loading data</div>';
+            }
+        }
+
+        // 2. Load Villages
+        async function loadVillages() {
+            try {
+                const response = await fetch(`${API_BASE}/villages`);
+                const data = await response.json();
+                const tbody = document.getElementById('villagesTable');
+                tbody.innerHTML = data.map(v => `
+                    <tr>
+                        <td>${v.VILLAGE_ID}</td>
+                        <td>${v.VILLAGE_NAME}</td>
+                        <td>${v.VILLAGE_CODE}</td>
+                        <td>${formatNumber(v.POPULATION)}</td>
+                        <td>${formatNumber(v.TOTAL_FAMILIES)}</td>
+                        <td><span class="status-badge ${getStatusClass(v.STATUS)}">${v.STATUS}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading villages:', error);
+            }
+        }
+
+        // 3. Load Resources Summary
+        async function loadResourcesSummary() {
+            try {
+                const response = await fetch(`${API_BASE}/resources-summary`);
+                const data = await response.json();
+                const tbody = document.getElementById('resourcesTable');
+                tbody.innerHTML = data.map(r => `
+                    <tr>
+                        <td>${r.RESOURCE_TYPE}</td>
+                        <td>${r.UNIQUE_RESOURCES}</td>
+                        <td>${formatNumber(r.TOTAL_UNITS)}</td>
+                        <td>${r.AVG_COVERAGE}%</td>
+                        <td>${r.VILLAGES_SERVED}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading resources summary:', error);
+            }
+        }
+
+        // 4. Load Top Resources
+        async function loadTopResources() {
+            try {
+                const response = await fetch(`${API_BASE}/top-resources`);
+                const data = await response.json();
+                const tbody = document.getElementById('topResourcesTable');
+                tbody.innerHTML = data.map(r => `
+                    <tr>
+                        <td>${r.VILLAGE_NAME}</td>
+                        <td>${r.RESOURCE_TYPE}</td>
+                        <td>${r.RESOURCE_NAME}</td>
+                        <td>${r.TOTAL_COUNT}</td>
+                        <td>${r.COVERAGE}%</td>
+                        <td>${r.QUALITY}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading top resources:', error);
+            }
+        }
+
+        // 5. Load Complaints Status
+        async function loadComplaintsStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/complaints-status`);
+                const data = await response.json();
+                const tbody = document.getElementById('complaintsStatusTable');
+                tbody.innerHTML = data.map(c => `
+                    <tr>
+                        <td><span class="status-badge ${getStatusClass(c.STATUS)}">${c.STATUS}</span></td>
+                        <td>${c.COUNT_COMPLAINTS}</td>
+                        <td>${c.PERCENTAGE}%</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading complaints status:', error);
+            }
+        }
+
+        // 6. Load Recent Complaints
+        async function loadRecentComplaints() {
+            try {
+                const response = await fetch(`${API_BASE}/recent-complaints`);
+                const data = await response.json();
+                const tbody = document.getElementById('recentComplaintsTable');
+                tbody.innerHTML = data.map(c => `
+                    <tr>
+                        <td>${c.COMPLAINT_ID}</td>
+                        <td>${c.VILLAGE_NAME}</td>
+                        <td>${c.TYPE}</td>
+                        <td>${c.TITLE}</td>
+                        <td><span class="status-badge ${getStatusClass(c.STATUS)}">${c.STATUS}</span></td>
+                        <td>${c.PRIORITY}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading recent complaints:', error);
+            }
+        }
+
+        // 7. Load Projects
+        async function loadProjects() {
+            try {
+                const response = await fetch(`${API_BASE}/project-performance`);
+                const data = await response.json();
+                const tbody = document.getElementById('projectsTable');
+                tbody.innerHTML = data.map(p => `
+                    <tr>
+                        <td>${p.PROJECT_NAME}</td>
+                        <td>${p.VILLAGE}</td>
+                        <td>₹${formatNumber(p.BUDGET)}</td>
+                        <td>₹${formatNumber(p.SPENT)}</td>
+                        <td>${p.COMPLETION}%</td>
+                        <td><span class="status-badge ${getStatusClass(p.STATUS)}">${p.STATUS}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading projects:', error);
+            }
+        }
+
+        // 8. Load Reviews
+        async function loadReviews() {
+            try {
+                const response = await fetch(`${API_BASE}/work-reviews`);
+                const data = await response.json();
+                const tbody = document.getElementById('reviewsTable');
+                tbody.innerHTML = data.map(r => `
+                    <tr>
+                        <td>${r.PROJECT}</td>
+                        <td>${r.VILLAGE}</td>
+                        <td>${'⭐'.repeat(r.RATING)}</td>
+                        <td>${r.COMMENTS}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+            }
+        }
+
+        // Load all data on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSummary();
+            loadVillages();
+            loadResourcesSummary();
+            loadTopResources();
+            loadComplaintsStatus();
+            loadRecentComplaints();
+            loadProjects();
+            loadReviews();
+        });
+    </script>
+</body>
+</html>

@@ -1,66 +1,56 @@
 -- ============================================================================
--- GRAM SEVA DASHBOARD - DATABASE REPORT (Aligned & Professional Layout)
+-- GRAM SEVA ADMIN DASHBOARD - REPORT (NO ERRORS)
 -- Generated: SYSDATE
 -- Author: Village Management System
 -- ============================================================================
 
 SET SERVEROUTPUT ON SIZE 1000000;
-SET LINESIZE 250;
-SET PAGESIZE 50;
+SET LINESIZE 200;
+SET PAGESIZE 100;
 SET FEEDBACK OFF;
-SET VERIFY OFF;
 SET HEADING ON;
-SET TRIMOUT ON;
-SET TRIMSPOOL ON;
-SET WRAP OFF;
-
+SET COLSEP ' | ';
 CLEAR COLUMNS;
 CLEAR BREAKS;
 TTITLE OFF;
 BTITLE OFF;
 
 -- ============================================================================
--- EXECUTIVE SUMMARY
+-- Executive Summary
 -- ============================================================================
 
-PROMPT 
-PROMPT ╔══════════════════════════════════════════════════════════════════════════╗
+PROMPT ╔════════════════════════════════════════════════════════════════════════════╗
 PROMPT ║                              EXECUTIVE SUMMARY                           ║
-PROMPT ╚══════════════════════════════════════════════════════════════════════════╝
-PROMPT
+PROMPT ╚════════════════════════════════════════════════════════════════════════════╝
 
 COLUMN metric FORMAT A45 HEADING 'Metric'
 COLUMN value FORMAT 999,999,999 HEADING 'Value'
 
 SELECT metric, value
 FROM (
-    SELECT 'Total Villages'     AS metric, COUNT(*)                  AS value, 1 AS sort_order FROM VILLAGES
+    SELECT 'Total Villages'       AS metric, COUNT(*)                      AS value, 1 AS sort_order FROM VILLAGES
     UNION ALL
-    SELECT 'Total Population',   SUM(POPULATION),                     2 FROM VILLAGES
+    SELECT 'Total Population',     SUM(POPULATION),                         2 FROM VILLAGES
     UNION ALL
-    SELECT 'Total Families',     SUM(TOTAL_FAMILIES),                 3 FROM VILLAGES
+    SELECT 'Total Families',       SUM(TOTAL_FAMILIES),                     3 FROM VILLAGES
     UNION ALL
-    SELECT 'Active Projects',    COUNT(*),                            4 FROM DEVELOPMENT_PROJECTS WHERE PROJECT_STATUS = 'IN_PROGRESS'
+    SELECT 'Active Projects',      COUNT(*) ,                               4 FROM DEVELOPMENT_PROJECTS WHERE PROJECT_STATUS = 'IN_PROGRESS'
     UNION ALL
-    SELECT 'Pending Complaints', COUNT(*),                            5 FROM COMPLAINTS WHERE STATUS = 'PENDING'
+    SELECT 'Pending Complaints',   COUNT(*),                                5 FROM COMPLAINTS WHERE STATUS = 'PENDING'
     UNION ALL
-    SELECT 'Total Resources',    COUNT(*),                            6 FROM RESOURCES
+    SELECT 'Total Resources',      COUNT(*) ,                               6 FROM RESOURCES
     UNION ALL
-    SELECT 'Work Reviews',       COUNT(*),                            7 FROM WORK_REVIEWS
+    SELECT 'Work Reviews',         COUNT(*) ,                               7 FROM WORK_REVIEWS
 )
 ORDER BY sort_order;
 
-
-
 -- ============================================================================
--- VILLAGES OVERVIEW
+-- Villages Overview
 -- ============================================================================
 
-PROMPT 
-PROMPT ╔══════════════════════════════════════════════════════════════════════════╗
+PROMPT ╔════════════════════════════════════════════════════════════════════════════╗
 PROMPT ║                              VILLAGES OVERVIEW                           ║
-PROMPT ╚══════════════════════════════════════════════════════════════════════════╝
-PROMPT
+PROMPT ╚════════════════════════════════════════════════════════════════════════════╝
 
 CLEAR COLUMNS;
 
@@ -72,24 +62,22 @@ COLUMN families      FORMAT 99,999         HEADING 'Families'
 COLUMN status        FORMAT A15            HEADING 'Status'
 
 SELECT 
-    VILLAGE_ID AS village_id,
-    SUBSTR(VILLAGE_NAME, 1, 40) AS village_name,
-    SUBSTR(VILLAGE_CODE, 1, 15) AS village_code,
-    POPULATION AS population,
-    TOTAL_FAMILIES AS families,
-    STATUS AS status
-FROM VILLAGES
-ORDER BY VILLAGE_ID;
+    v.VILLAGE_ID AS village_id,
+    v.VILLAGE_NAME AS village_name,
+    v.VILLAGE_CODE AS village_code,
+    v.POPULATION AS population,
+    v.TOTAL_FAMILIES AS families,
+    v.STATUS AS status
+FROM VILLAGES v
+ORDER BY v.VILLAGE_ID;
 
 -- ============================================================================
--- RESOURCE DISTRIBUTION SUMMARY
+-- Resource Distribution Summary
 -- ============================================================================
 
-PROMPT 
-PROMPT ╔══════════════════════════════════════════════════════════════════════════╗
-PROMPT ║                        RESOURCE DISTRIBUTION SUMMARY                     ║
-PROMPT ╚══════════════════════════════════════════════════════════════════════════╝
-PROMPT
+PROMPT ╔════════════════════════════════════════════════════════════════════════════╗
+PROMPT ║                        RESOURCE DISTRIBUTION SUMMARY                      ║
+PROMPT ╚════════════════════════════════════════════════════════════════════════════╝
 
 CLEAR COLUMNS;
 
@@ -100,24 +88,22 @@ COLUMN avg_coverage      FORMAT 990.99      HEADING 'Avg Cov(%)'
 COLUMN villages_served   FORMAT 999         HEADING 'Villages'
 
 SELECT 
-    RESOURCE_TYPE AS resource_type,
-    COUNT(DISTINCT RESOURCE_NAME) AS unique_resources,
-    SUM(TOTAL_COUNT) AS total_units,
-    ROUND(AVG(COVERAGE_PERCENTAGE), 2) AS avg_coverage,
-    COUNT(DISTINCT VILLAGE_ID) AS villages_served
-FROM RESOURCES
-GROUP BY RESOURCE_TYPE
-ORDER BY RESOURCE_TYPE;
+    r.RESOURCE_TYPE AS resource_type,
+    COUNT(DISTINCT r.RESOURCE_NAME) AS unique_resources,
+    SUM(r.TOTAL_COUNT) AS total_units,
+    ROUND(AVG(r.COVERAGE_PERCENTAGE), 2) AS avg_coverage,
+    COUNT(DISTINCT r.VILLAGE_ID) AS villages_served
+FROM RESOURCES r
+GROUP BY r.RESOURCE_TYPE
+ORDER BY r.RESOURCE_TYPE;
 
 -- ============================================================================
--- TOP RESOURCES BY VILLAGE (Unique)
+-- Top Resources By Village (Unique)
 -- ============================================================================
 
-PROMPT 
-PROMPT ╔══════════════════════════════════════════════════════════════════════════╗
+PROMPT ╔════════════════════════════════════════════════════════════════════════════╗
 PROMPT ║                       TOP RESOURCES BY VILLAGE (Unique)                  ║
-PROMPT ╚══════════════════════════════════════════════════════════════════════════╝
-PROMPT
+PROMPT ╚════════════════════════════════════════════════════════════════════════════╝
 
 CLEAR COLUMNS;
 
@@ -128,11 +114,12 @@ COLUMN total_count    FORMAT 999   HEADING 'Units'
 COLUMN coverage       FORMAT 990.99 HEADING 'Coverage(%)'
 COLUMN quality        FORMAT A12   HEADING 'Quality'
 
-SELECT * FROM (
+SELECT *
+FROM (
     SELECT 
-        SUBSTR(v.VILLAGE_NAME, 1, 30) AS village_name,
-        SUBSTR(r.RESOURCE_TYPE, 1, 18) AS resource_type,
-        SUBSTR(r.RESOURCE_NAME, 1, 40) AS resource_name,
+        v.VILLAGE_NAME AS village_name,
+        r.RESOURCE_TYPE AS resource_type,
+        r.RESOURCE_NAME AS resource_name,
         r.TOTAL_COUNT AS total_count,
         r.COVERAGE_PERCENTAGE AS coverage,
         r.QUALITY_STATUS AS quality,
@@ -144,14 +131,12 @@ WHERE rn = 1
 ORDER BY village_name, resource_type;
 
 -- ============================================================================
--- COMPLAINTS STATUS BREAKDOWN
+-- Complaints Status Breakdown
 -- ============================================================================
 
-PROMPT 
-PROMPT ╔══════════════════════════════════════════════════════════════════════════╗
+PROMPT ╔════════════════════════════════════════════════════════════════════════════╗
 PROMPT ║                          COMPLAINTS STATUS BREAKDOWN                     ║
-PROMPT ╚══════════════════════════════════════════════════════════════════════════╝
-PROMPT
+PROMPT ╚════════════════════════════════════════════════════════════════════════════╝
 
 CLEAR COLUMNS;
 
@@ -160,22 +145,20 @@ COLUMN count_complaints  FORMAT 999         HEADING 'Count'
 COLUMN percentage        FORMAT 990.99      HEADING 'Percent(%)'
 
 SELECT 
-    STATUS AS status,
+    c.STATUS AS status,
     COUNT(*) AS count_complaints,
-    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM COMPLAINTS), 2) AS percentage
-FROM COMPLAINTS
-GROUP BY STATUS
+    ROUND(COUNT(*) * 100 / (SELECT COUNT(*) FROM COMPLAINTS), 2) AS percentage
+FROM COMPLAINTS c
+GROUP BY c.STATUS
 ORDER BY count_complaints DESC;
 
 -- ============================================================================
--- RECENT COMPLAINTS (Last 10)
+-- Recent Complaints (Last 10)
 -- ============================================================================
 
-PROMPT 
-PROMPT ╔══════════════════════════════════════════════════════════════════════════╗
+PROMPT ╔════════════════════════════════════════════════════════════════════════════╗
 PROMPT ║                          RECENT COMPLAINTS (Last 10)                     ║
-PROMPT ╚══════════════════════════════════════════════════════════════════════════╝
-PROMPT
+PROMPT ╚════════════════════════════════════════════════════════════════════════════╝
 
 CLEAR COLUMNS;
 
@@ -186,12 +169,13 @@ COLUMN title         FORMAT A45     HEADING 'Complaint Title'
 COLUMN status        FORMAT A15     HEADING 'Status'
 COLUMN priority      FORMAT A12     HEADING 'Priority'
 
-SELECT * FROM (
+SELECT *
+FROM (
     SELECT 
         c.COMPLAINT_ID AS complaint_id,
-        SUBSTR(v.VILLAGE_NAME, 1, 25) AS village_name,
-        SUBSTR(c.COMPLAINT_TYPE, 1, 18) AS type,
-        SUBSTR(c.COMPLAINT_TITLE, 1, 45) AS title,
+        v.VILLAGE_NAME AS village_name,
+        c.COMPLAINT_TYPE AS type,
+        c.COMPLAINT_TITLE AS title,
         c.STATUS AS status,
         c.PRIORITY_LEVEL AS priority,
         ROW_NUMBER() OVER (PARTITION BY c.VILLAGE_ID, c.COMPLAINT_TITLE ORDER BY c.FILED_DATE DESC) AS rn
@@ -202,14 +186,12 @@ WHERE rn = 1 AND ROWNUM <= 10
 ORDER BY complaint_id DESC;
 
 -- ============================================================================
--- PROJECT PERFORMANCE
+-- Project Performance
 -- ============================================================================
 
-PROMPT 
-PROMPT ╔══════════════════════════════════════════════════════════════════════════╗
+PROMPT ╔════════════════════════════════════════════════════════════════════════════╗
 PROMPT ║                           PROJECT PERFORMANCE                            ║
-PROMPT ╚══════════════════════════════════════════════════════════════════════════╝
-PROMPT
+PROMPT ╚════════════════════════════════════════════════════════════════════════════╝
 
 CLEAR COLUMNS;
 
@@ -220,10 +202,11 @@ COLUMN spent         FORMAT 99,999,999 HEADING 'Spent'
 COLUMN completion    FORMAT 990.99    HEADING 'Complete(%)'
 COLUMN status        FORMAT A15       HEADING 'Status'
 
-SELECT * FROM (
+SELECT *
+FROM (
     SELECT 
-        SUBSTR(p.PROJECT_NAME, 1, 45) AS project_name,
-        SUBSTR(v.VILLAGE_NAME, 1, 25) AS village,
+        p.PROJECT_NAME AS project_name,
+        v.VILLAGE_NAME AS village,
         p.BUDGET_ALLOCATED AS budget,
         p.BUDGET_SPENT AS spent,
         p.COMPLETION_PERCENTAGE AS completion,
@@ -236,14 +219,12 @@ WHERE rn = 1
 ORDER BY completion DESC;
 
 -- ============================================================================
--- WORK REVIEWS SUMMARY
+-- Work Reviews Summary
 -- ============================================================================
 
-PROMPT 
-PROMPT ╔══════════════════════════════════════════════════════════════════════════╗
+PROMPT ╔════════════════════════════════════════════════════════════════════════════╗
 PROMPT ║                             WORK REVIEWS SUMMARY                         ║
-PROMPT ╚══════════════════════════════════════════════════════════════════════════╝
-PROMPT
+PROMPT ╚════════════════════════════════════════════════════════════════════════════╝
 
 CLEAR COLUMNS;
 
@@ -253,20 +234,22 @@ COLUMN rating   FORMAT 9    HEADING 'Rating'
 COLUMN comments FORMAT A55  HEADING 'Comments'
 
 SELECT 
-    SUBSTR(p.PROJECT_NAME, 1, 45) AS project,
-    SUBSTR(v.VILLAGE_NAME, 1, 25) AS village,
+    p.PROJECT_NAME AS project,
+    v.VILLAGE_NAME AS village,
     r.QUALITY_RATING AS rating,
-    SUBSTR(NVL(r.REVIEW_COMMENTS, 'No comments'), 1, 55) AS comments
+    NVL(r.REVIEW_COMMENTS, 'No comments') AS comments
 FROM WORK_REVIEWS r
 JOIN DEVELOPMENT_PROJECTS p ON r.PROJECT_ID = p.PROJECT_ID
 JOIN VILLAGES v ON p.VILLAGE_ID = v.VILLAGE_ID
 ORDER BY r.REVIEW_DATE DESC;
 
-PROMPT 
-PROMPT ╔══════════════════════════════════════════════════════════════════════════╗
-PROMPT ║                             END OF REPORT                                ║
-PROMPT ╚══════════════════════════════════════════════════════════════════════════╝
-PROMPT 
+-- ============================================================================
+-- END OF REPORT
+-- ============================================================================
+
+PROMPT ╔════════════════════════════════════════════════════════════════════════════╗
+PROMPT ║                                END OF REPORT                             ║
+PROMPT ╚════════════════════════════════════════════════════════════════════════════╝
 
 SET FEEDBACK ON;
 EXIT;

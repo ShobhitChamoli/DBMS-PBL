@@ -218,9 +218,13 @@
         </div>
 
         <div class="dashboard-widget projects-widget">
-          <div class="widget-header"><h3 class="widget-title">विकास परियोजनाएं</h3></div>
-          <div class="widget-content"><div class="projects-list"></div></div>
-        </div>
+  <div class="widget-header">
+    <h3 class="widget-title">विकास परियोजनाएं</h3>
+    <button class="widget-action" onclick="openModal('addProjectModal')"><i class="fas fa-plus"></i></button>
+  </div>
+  <div class="widget-content"><div class="projects-list"></div></div>
+</div>
+
       </div>
     </section>
 
@@ -488,6 +492,58 @@
     </div>
   </div>
 
+<!-- Add Project Modal -->
+<div class="modal" id="addProjectModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>नई विकास परियोजना जोड़ें</h3>
+      <button class="close-btn" onclick="closeModal('addProjectModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form class="modal-form">
+        <div class="form-group">
+          <label>गांव चुनें</label>
+          <select class="modal-input" id="projectVillage" required>
+            <option value="">गांव चुनें</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>परियोजना का नाम</label>
+          <input type="text" class="modal-input" id="projectName" required placeholder="जैसे: पानी की टंकी निर्माण">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>आवंटित बजट (₹)</label>
+            <input type="number" class="modal-input" id="projectBudget" required placeholder="500000">
+          </div>
+          <div class="form-group">
+            <label>खर्च किया गया (₹)</label>
+            <input type="number" class="modal-input" id="projectSpent" value="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>पूर्णता प्रतिशत (%)</label>
+            <input type="number" class="modal-input" id="projectCompletion" value="0" min="0" max="100">
+          </div>
+          <div class="form-group">
+            <label>स्थिति</label>
+            <select class="modal-input" id="projectStatus" required>
+              <option value="PLANNED">योजना में</option>
+              <option value="IN_PROGRESS">प्रगति में</option>
+              <option value="COMPLETED">पूर्ण</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary-btn" onclick="closeModal('addProjectModal')">रद्द करें</button>
+      <button class="btn primary-btn" onclick="saveProject()">सहेजें</button>
+    </div>
+  </div>
+</div>
+
   <script>
     const API_URL = 'http://localhost:3000/api';
     let selectedVillageId = null;
@@ -652,6 +708,57 @@
             console.log('Using defaults');
         }
     }
+    async function saveProject() {
+  const villageId = document.getElementById('projectVillage').value;
+  const name = document.getElementById('projectName').value.trim();
+  const budget = document.getElementById('projectBudget').value;
+  const spent = document.getElementById('projectSpent').value;
+  const completion = document.getElementById('projectCompletion').value;
+  const status = document.getElementById('projectStatus').value;
+
+  if (!villageId || !name || !budget) {
+    alert('कृपया सभी आवश्यक फील्ड भरें!');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/projects`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        village_id: parseInt(villageId),
+        project_name: name,
+        budget_allocated: parseFloat(budget),
+        budget_spent: parseFloat(spent),
+        completion_percentage: parseFloat(completion),
+        project_status: status
+      })
+    });
+
+    const result = await response.json();
+    
+    if (result.success) {
+      alert(result.message);
+      closeModal('addProjectModal');
+      
+      // Clear form
+      document.getElementById('projectVillage').value = '';
+      document.getElementById('projectName').value = '';
+      document.getElementById('projectBudget').value = '';
+      document.getElementById('projectSpent').value = '0';
+      document.getElementById('projectCompletion').value = '0';
+      document.getElementById('projectStatus').value = 'PLANNED';
+      
+      // Reload data
+      await loadProjects();
+      await loadStats();
+    } else {
+      alert('Error: ' + result.error);
+    }
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+}
 
     async function viewVillageDetails(villageId) {
         try {
@@ -764,6 +871,27 @@
             alert('Error: ' + error.message);
         }
     }
+    async function populateVillageDropdowns() {
+  try {
+    const response = await fetch(`${API_URL}/villages`);
+    const villages = await response.json();
+    
+    const resourceVillage = document.getElementById('resourceVillage');
+    const projectVillage = document.getElementById('projectVillage'); // ADD THIS
+    
+    villages.forEach(v => {
+      if (resourceVillage) {
+        resourceVillage.innerHTML += `<option value="${v.VILLAGE_ID}">${v.VILLAGE_NAME}</option>`;
+      }
+      // ADD THIS
+      if (projectVillage) {
+        projectVillage.innerHTML += `<option value="${v.VILLAGE_ID}">${v.VILLAGE_NAME}</option>`;
+      }
+    });
+  } catch (error) {
+    console.log('Error loading villages');
+  }
+}
 
 
     async function showResourceDistribution(resourceType) {
@@ -1118,17 +1246,33 @@
     }
 
     async function populateVillageDropdowns() {
-        try {
-            const response = await fetch(`${API_URL}/villages`);
-            const villages = await response.json();
-            const resourceVillage = document.getElementById('resourceVillage');
-            villages.forEach(v => {
-                if (resourceVillage) resourceVillage.innerHTML += `<option value="${v.VILLAGE_ID}">${v.VILLAGE_NAME}</option>`;
-            });
-        } catch (error) {
-            console.log('Error loading villages');
-        }
+  try {
+    const response = await fetch(`${API_URL}/villages`);
+    const villages = await response.json();
+    
+    const resourceVillage = document.getElementById('resourceVillage');
+    const projectVillage = document.getElementById('projectVillage'); // ADD THIS
+    
+    // Clear and populate resource village dropdown
+    if (resourceVillage) {
+      resourceVillage.innerHTML = '<option value="">गांव चुनें</option>';
+      villages.forEach(v => {
+        resourceVillage.innerHTML += `<option value="${v.VILLAGE_ID}">${v.VILLAGE_NAME}</option>`;
+      });
     }
+    
+    // ADD THIS BLOCK - Populate project village dropdown
+    if (projectVillage) {
+      projectVillage.innerHTML = '<option value="">गांव चुनें</option>';
+      villages.forEach(v => {
+        projectVillage.innerHTML += `<option value="${v.VILLAGE_ID}">${v.VILLAGE_NAME}</option>`;
+      });
+    }
+  } catch (error) {
+    console.log('Error loading villages:', error);
+  }
+}
+
 
     async function populateProjectDropdown() {
         try {

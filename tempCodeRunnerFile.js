@@ -298,26 +298,6 @@ app.post('/api/reviews', async (req, res) => {
     }
 });
 
-// Add Development Project endpoint
-app.post('/api/projects', async (req, res) => {
-  let connection;
-  try {
-    const { village_id, project_name, budget_allocated, budget_spent, completion_percentage, project_status } = req.body;
-    connection = await pool.getConnection();
-    await connection.execute(
-      `INSERT INTO DEVELOPMENT_PROJECTS (PROJECT_ID, VILLAGE_ID, PROJECT_NAME, BUDGET_ALLOCATED, BUDGET_SPENT, COMPLETION_PERCENTAGE, PROJECT_STATUS)
-       VALUES (project_seq.NEXTVAL, :1, :2, :3, :4, :5, :6)`,
-      [village_id, project_name, budget_allocated || 0, budget_spent || 0, completion_percentage || 0, project_status || 'PLANNED'],
-      { autoCommit: true }
-    );
-    console.log(`✓ Project added: ${project_name}`);
-    res.json({ success: true, message: 'परियोजना सफलतापूर्वक जोड़ी गई!' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  } finally {
-    if (connection) await connection.close();
-  }
-});
 // ============================================
 // UPDATE ENDPOINTS
 // ============================================

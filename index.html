@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyHill - Secure Login Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div class="login-wrapper">
+    <!-- Left Panel - Branding -->
+    <div class="brand-panel">
+      <div class="brand-content">
+        <!-- Logo Container -->
+        <div class="logo-container">
+          <div class="logo-icon-wrapper">
+            <img src="mountain.png" alt="Mountain Logo" class="logo-icon">
+          </div>
+        </div>
+
+        <!-- Brand Title -->
+        <h1 class="brand-title">MyHill</h1>
+
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+          <h2 class="welcome-title">Welcome Back</h2>
+          <p class="welcome-subtitle">Your secure gateway to digital excellence</p>
+        </div>
+
+        <!-- Feature Cards -->
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="feature-text">
+              <span class="feature-title">Enterprise</span>
+              <span class="feature-subtitle">Security</span>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <div class="feature-text">
+              <span class="feature-title">Lightning</span>
+              <span class="feature-subtitle">Fast</span>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-globe"></i>
+            </div>
+            <div class="feature-text">
+              <span class="feature-title">Global</span>
+              <span class="feature-subtitle">Access</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Dots -->
+        <div class="dots-indicator">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Login Form -->
+    <div class="form-panel">
+      <div class="form-container">
+        <!-- Form Header -->
+        <div class="form-header">
+          <h2 class="form-title" id="formTitle">User Access</h2>
+          <p class="form-subtitle">Choose your access level and continue</p>
+        </div>
+
+        <!-- Role Selector -->
+        <div class="role-selector">
+          <div class="selector-track">
+            <div class="selector-thumb"></div>
+            <div class="selector-options">
+              <input type="radio" id="userAccess" name="userType" value="user" checked>
+              <label for="userAccess" class="selector-label">
+                <i class="fas fa-user"></i>
+                <span>User Access</span>
+              </label>
+              
+              <input type="radio" id="adminPortal" name="userType" value="admin">
+              <label for="adminPortal" class="selector-label">
+                <i class="fas fa-user-shield"></i>
+                <span>Admin Portal</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Login Form -->
+        <form class="login-form" id="loginForm">
+          <!-- Username Field -->
+          <div class="input-field">
+            <div class="input-wrapper">
+              <i class="fas fa-envelope input-icon"></i>
+              <input type="text" id="username" class="form-input" placeholder="Username" required>
+              <div class="input-highlight"></div>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="input-field">
+            <div class="input-wrapper">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" id="password" class="form-input" placeholder="Password" required>
+              <button type="button" class="password-toggle" id="togglePassword">
+                <i class="fas fa-eye"></i>
+              </button>
+              <div class="input-highlight"></div>
+            </div>
+          </div>
+
+          <!-- Form Options -->
+          <div class="form-options">
+            <label class="checkbox-container">
+              <input type="checkbox" id="rememberMe">
+              <span class="checkmark"></span>
+              <span class="checkbox-label">Remember me</span>
+            </label>
+            <a href="#" class="forgot-link">Forgot password?</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="login-btn">
+            <span>Sign In</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+
+          <!-- Error Message -->
+          <div class="error-message" id="errorMessage" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span></span>
+          </div>
+        </form>
+
+        <!-- Footer -->
+        <div class="form-footer">
+          <p class="signup-text">Don't have an account? <a href="#" class="signup-link">Create one</a></p>
+          
+          <div class="divider">
+            <span>or</span>
+          </div>
+
+          <button class="google-btn">
+            <i class="fab fa-google"></i>
+            <span>Continue with Google</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize login functionality
+    const roleInputs = document.querySelectorAll('input[name="userType"]');
+    const selectorThumb = document.querySelector('.selector-thumb');
+    const formTitle = document.getElementById('formTitle');
+    const loginForm = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Handle role selection
+    roleInputs.forEach((input, index) => {
+      input.addEventListener('change', () => {
+        // Move selector thumb
+        selectorThumb.style.transform = `translateX(${index * 100}%)`;
+        
+        // Update form title
+        formTitle.textContent = input.value === 'admin' ? 'Admin Portal' : 'User Access';
+        
+        // Update labels active state
+        document.querySelectorAll('.selector-label').forEach(label => {
+          label.classList.remove('active');
+        });
+        input.nextElementSibling.classList.add('active');
+      });
+    });
+
+    // Initialize selector position
+    const checkedInput = document.querySelector('input[name="userType"]:checked');
+    const checkedIndex = Array.from(roleInputs).indexOf(checkedInput);
+    selectorThumb.style.transform = `translateX(${checkedIndex * 100}%)`;
+    checkedInput.nextElementSibling.classList.add('active');
+
+    // Password toggle
+    togglePassword.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      
+      const icon = togglePassword.querySelector('i');
+      icon.classList.toggle('fa-eye');
+      icon.classList.toggle('fa-eye-slash');
+    });
+
+    // Form submission
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+      const userType = document.querySelector('input[name="userType"]:checked').value;
+      
+      // Hide previous error
+      errorMessage.style.display = 'none';
+      
+      // Add loading state
+      const submitBtn = loginForm.querySelector('.login-btn');
+      submitBtn.classList.add('loading');
+      
+      // Simulate authentication
+      setTimeout(() => {
+        if (userType === 'user') {
+          if (username === 'user' && password === '1234') {
+            window.location.href = 'user-dashboard.html';
+          } else {
+            showError('Invalid user credentials!');
+          }
+        } else if (userType === 'admin') {
+          if (username === 'admin' && password === '1234') {
+            window.location.href = 'admin-dashboard.html';
+          } else {
+            showError('Invalid admin credentials!');
+          }
+        }
+        submitBtn.classList.remove('loading');
+      }, 1000);
+    });
+
+    function showError(message) {
+      const errorSpan = errorMessage.querySelector('span');
+      errorSpan.textContent = message;
+      errorMessage.style.display = 'flex';
+      
+      setTimeout(() => {
+        errorMessage.style.display = 'none';
+      }, 4000);
+    }
+
+    // Input focus effects
+    document.querySelectorAll('.form-input').forEach(input => {
+      input.addEventListener('focus', () => {
+        input.closest('.input-wrapper').classList.add('focused');
+      });
+      
+      input.addEventListener('blur', () => {
+        if (!input.value) {
+          input.closest('.input-wrapper').classList.remove('focused');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+//accessing data using web
+
+cd ~/Desktop/PBL_DETAILS/Project_dbms/frontend
+docker start oracle-xe
+sleep 30
+docker exec -i oracle-xe sqlplus system/MyPassword123@XEPDB1 < setup_database.sql
+docker exec -i oracle-xe sqlplus system/MyPassword123@XEPDB1 < cleanup_duplicates.sql  
+node server.js
+node server2.js
+
+--------------------------------------------------------------------------------------
+//printing data in vs
+
+cd ~/Desktop/PBL_DETAILS/Project_dbms/frontend
+docker exec -i oracle-xe sqlplus -S system/MyPassword123@XEPDB1 < admin_view.sql
